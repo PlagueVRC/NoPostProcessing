@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using MelonLoader;
+﻿using MelonLoader;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -8,9 +8,7 @@ namespace NoPostProcessing
     public class NoPostProcessing : MelonMod
     {
         #region Data Types
-            public static bool DisablePostProcessing = true;
-
-            public static bool WorldWasChanged = false;
+        public static bool DisablePostProcessing = true;
         #endregion
 
         /// <summary>
@@ -41,7 +39,7 @@ namespace NoPostProcessing
                 DisablePostProcessing = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
 
                 //Enumerate All Cameras
-                foreach (Camera cam in Camera.allCameras)
+                foreach (var cam in Camera.allCameras)
                 {
                     //If The Camera Has Post Processing Applied To It
                     if (cam.GetComponent<PostProcessLayer>() != null)
@@ -71,9 +69,6 @@ namespace NoPostProcessing
             //If World Was Initialized (Not Login/Loading)
             if (buildIndex == -1)
             {
-                //Define Boolean Stating The World Was Changed
-                WorldWasChanged = true;
-
                 //Define Delay Offset To Use In OnUpdate()
                 MelonCoroutines.Start(DelayedAction());
             }
@@ -87,30 +82,25 @@ namespace NoPostProcessing
         {
             yield return new WaitForSeconds(5);
 
-            //Do Not Run Any Code Below Unless The Delay Has Passed & The World Has Changed
-            if (WorldWasChanged)
+            //Enumerate All Cameras
+            foreach (Camera cam in Camera.allCameras)
             {
-                //Define WorldWasChanged As False Until Next World Change
-                WorldWasChanged = false;
-
-                //Enumerate All Cameras
-                foreach (Camera cam in Camera.allCameras)
+                //If The Camera Has Post Processing Applied To It
+                if (cam.GetComponent<PostProcessLayer>() != null)
                 {
-                    //If The Camera Has Post Processing Applied To It
-                    if (cam.GetComponent<PostProcessLayer>() != null)
+                    //If The Camera's Post Processing Layer Has Not Been Toggled Previously
+                    if (!DisablePostProcessing != cam.GetComponent<PostProcessLayer>().enabled)
                     {
-                        //If The Camera's Post Processing Layer Has Not Been Toggled Previously
-                        if (!DisablePostProcessing != cam.GetComponent<PostProcessLayer>().enabled)
-                        {
-                            //Variably Log If The Post Processing Layer Was Removed Or Added
-                            MelonLogger.Msg(DisablePostProcessing ? "Removed Post Processing From World!" : "Re-Added Post Processing To World!");
+                        //Variably Log If The Post Processing Layer Was Removed Or Added
+                        MelonLogger.Msg(DisablePostProcessing ? "Removed Post Processing From World!" : "Re-Added Post Processing To World!");
 
-                            //Set The Post Processing Layer On The Camera To The Opposite State Of DisablePostProcessing
-                            cam.GetComponent<PostProcessLayer>().enabled = !DisablePostProcessing;
-                        }
+                        //Set The Post Processing Layer On The Camera To The Opposite State Of DisablePostProcessing
+                        cam.GetComponent<PostProcessLayer>().enabled = !DisablePostProcessing;
                     }
                 }
             }
+
+            yield break;
         }
     }
 }
