@@ -15,7 +15,7 @@ namespace NoPostProcessing
         public override void OnApplicationStart()
         {
             //Register Config Category And Toggle Boolean If Not Present
-            MelonPreferences.CreateCategory("NoPostProcessing", "NoPostProcessing");
+            MelonPreferences.CreateCategory("NoPostProcessing", "NoPostProcessing By Plague");
             MelonPreferences.CreateEntry("NoPostProcessing", "DisablePostProcessing", true, "Disable Post Processing");
 
             //Set Initial Post Processing State To The One In Config (Or Default: True)
