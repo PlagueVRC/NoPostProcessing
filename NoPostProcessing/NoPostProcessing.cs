@@ -7,9 +7,7 @@ namespace NoPostProcessing
 {
     public class NoPostProcessing : MelonMod
     {
-        #region Data Types
         public static bool DisablePostProcessing = true;
-        #endregion
 
         /// <summary>
         /// Called When The Game Starts
@@ -36,7 +34,7 @@ namespace NoPostProcessing
             if (DisablePostProcessing != ConfigValue)
             {
                 //Update Global Boolean To New ConfigValue
-                DisablePostProcessing = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
+                DisablePostProcessing = ConfigValue;
 
                 //Enumerate All Cameras
                 foreach (var cam in Camera.allCameras)
@@ -45,7 +43,7 @@ namespace NoPostProcessing
                     if (cam.GetComponent<PostProcessLayer>() != null)
                     {
                         //If The Camera's Post Processing Layer Has Not Been Toggled Previously
-                        if (!DisablePostProcessing != cam.GetComponent<PostProcessLayer>().enabled)
+                        if (cam.GetComponent<PostProcessLayer>().enabled != !DisablePostProcessing)
                         {
                             //Variably Log If The Post Processing Layer Was Removed Or Added
                             MelonLogger.Msg(DisablePostProcessing
@@ -78,7 +76,7 @@ namespace NoPostProcessing
         /// An IEnumerator Used To Delay Setting Of Post Processing On World Load To When The World Applies It
         /// </summary>
         /// <returns></returns>
-        IEnumerator DelayedAction()
+        private IEnumerator DelayedAction()
         {
             yield return new WaitForSeconds(5);
 
