@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.Rendering.PostProcessing;
@@ -19,11 +19,11 @@ namespace NoPostProcessing
         public override void OnApplicationStart()
         {
             //Register Config Category And Toggle Boolean If Not Present
-            MelonPrefs.RegisterCategory("NoPostProcessing", "NoPostProcessing");
-            MelonPrefs.RegisterBool("NoPostProcessing", "DisablePostProcessing", true, "Disable Post Processing");
+            MelonPreferences.CreateCategory("NoPostProcessing", "NoPostProcessing");
+            MelonPreferences.CreateEntry("NoPostProcessing", "DisablePostProcessing", true, "Disable Post Processing");
 
             //Set Initial Post Processing State To The One In Config (Or Default: True)
-            DisablePostProcessing = MelonPrefs.GetBool("NoPostProcessing", "DisablePostProcessing");
+            DisablePostProcessing = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
         }
 
         /// <summary>
@@ -32,13 +32,13 @@ namespace NoPostProcessing
         public override void OnModSettingsApplied()
         {
             //Update Local Boolean: ConfigValue To The State Of The Boolean In Config So We Don't Need To Keep Pulling It From Config, Which Would Cause Unnecessary Disk Reads
-            bool ConfigValue = MelonPrefs.GetBool("NoPostProcessing", "DisablePostProcessing");
+            bool ConfigValue = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
 
             //If Post Processing State Was Changed
             if (DisablePostProcessing != ConfigValue)
             {
                 //Update Global Boolean To New ConfigValue
-                DisablePostProcessing = MelonPrefs.GetBool("NoPostProcessing", "DisablePostProcessing");
+                DisablePostProcessing = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
 
                 //Enumerate All Cameras
                 foreach (Camera cam in Camera.allCameras)
@@ -50,9 +50,9 @@ namespace NoPostProcessing
                         if (!DisablePostProcessing != cam.GetComponent<PostProcessLayer>().enabled)
                         {
                             //Variably Log If The Post Processing Layer Was Removed Or Added
-                            MelonLogger.Log(DisablePostProcessing
+                            MelonLogger.Msg(DisablePostProcessing
                                 ? "Removed Post Processing From World!"
-                                : "Re-Added Post Processing From World!");
+                                : "Re-Added Post Processing To World!");
 
                             //Set The Post Processing Layer On The Camera To The Opposite State Of DisablePostProcessing
                             cam.GetComponent<PostProcessLayer>().enabled = !DisablePostProcessing;
@@ -66,10 +66,10 @@ namespace NoPostProcessing
         /// Called When A Level Has Loaded And Initialised
         /// </summary>
         /// <param name="level">The ID Of The Level Loaded</param>
-        public override void OnLevelWasInitialized(int level)
+        public override void OnSceneWasLoaded(int buildIndex, string sceneName)
         {
             //If World Was Initialized (Not Login/Loading)
-            if (level == -1)
+            if (buildIndex == -1)
             {
                 //Define Boolean Stating The World Was Changed
                 WorldWasChanged = true;
@@ -103,7 +103,7 @@ namespace NoPostProcessing
                         if (!DisablePostProcessing != cam.GetComponent<PostProcessLayer>().enabled)
                         {
                             //Variably Log If The Post Processing Layer Was Removed Or Added
-                            MelonLogger.Log(DisablePostProcessing ? "Removed Post Processing From World!" : "Re-Added Post Processing To World!");
+                            MelonLogger.Msg(DisablePostProcessing ? "Removed Post Processing From World!" : "Re-Added Post Processing To World!");
 
                             //Set The Post Processing Layer On The Camera To The Opposite State Of DisablePostProcessing
                             cam.GetComponent<PostProcessLayer>().enabled = !DisablePostProcessing;

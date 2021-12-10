@@ -13,7 +13,7 @@ using MelonLoader;
 [assembly: AssemblyCopyright("Copyright © Plague 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
-[assembly: MelonInfo(typeof(NoPostProcessing.NoPostProcessing), "NoPostProcessing", null, "Plague", null)]
+[assembly: MelonInfo(typeof(NoPostProcessing.NoPostProcessing), "NoPostProcessing", "3.0", "Plague", null)]
 [assembly: MelonGame(null, null)]
 [assembly: MelonOptionalDependencies("UIExpansionKit")]
 
