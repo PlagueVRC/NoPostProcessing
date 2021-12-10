@@ -23,18 +23,19 @@ namespace NoPostProcessing
         }
 
         /// <summary>
-        /// Called When UIExpansionKit Applies Mod Settings
+        /// Method To Toggle Post Processing
         /// </summary>
-        public override void OnModSettingsApplied()
+        /// <param name="state"></param>
+        private void SetPostProcessing(bool state, bool force = false)
         {
-            //Update Local Boolean: ConfigValue To The State Of The Boolean In Config So We Don't Need To Keep Pulling It From Config, Which Would Cause Unnecessary Disk Reads
-            bool ConfigValue = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
-
-            //If Post Processing State Was Changed
-            if (DisablePostProcessing != ConfigValue)
+            //If Post Processing State Was Changed Or Is To Be Forced
+            if (DisablePostProcessing != state || force)
             {
                 //Update Global Boolean To New ConfigValue
-                DisablePostProcessing = ConfigValue;
+                DisablePostProcessing = state;
+
+                //Variable For Log After
+                var DidToggle = false;
 
                 //Enumerate All Cameras
                 foreach (var cam in Camera.allCameras)
@@ -45,17 +46,51 @@ namespace NoPostProcessing
                         //If The Camera's Post Processing Layer Has Not Been Toggled Previously
                         if (cam.GetComponent<PostProcessLayer>().enabled != !DisablePostProcessing)
                         {
-                            //Variably Log If The Post Processing Layer Was Removed Or Added
-                            MelonLogger.Msg(DisablePostProcessing
-                                ? "Removed Post Processing From World!"
-                                : "Re-Added Post Processing To World!");
+                            //Set For Logging After
+                            DidToggle = true;
 
                             //Set The Post Processing Layer On The Camera To The Opposite State Of DisablePostProcessing
                             cam.GetComponent<PostProcessLayer>().enabled = !DisablePostProcessing;
                         }
                     }
                 }
+
+                foreach (var Volume in Resources.FindObjectsOfTypeAll<PostProcessVolume>())
+                {
+                    // -_-
+                    if (Volume != null)
+                    {
+                        //If The Post Processing Volume Has Not Been Toggled Previously
+                        if (Volume.enabled != !DisablePostProcessing)
+                        {
+                            //Set For Logging After
+                            DidToggle = true;
+
+                            //Set The Post Processing Layer On The Camera To The Opposite State Of DisablePostProcessing
+                            Volume.enabled = !DisablePostProcessing;
+                        }
+                    }
+                }
+
+                if (DidToggle)
+                {
+                    //Variably Log If The Post Processing Was Removed Or Added
+                    MelonLogger.Msg(DisablePostProcessing
+                        ? "Removed Post Processing From World!"
+                        : "Re-Added Post Processing To World!");
+                }
             }
+        }
+
+        /// <summary>
+        /// Called When UIExpansionKit Applies Mod Settings
+        /// </summary>
+        public override void OnModSettingsApplied()
+        {
+            //Update Local Boolean: ConfigValue To The State Of The Boolean In Config So We Don't Need To Keep Pulling It From Config, Which Would Cause Unnecessary Disk Reads
+            bool ConfigValue = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
+
+            SetPostProcessing(ConfigValue);
         }
 
         /// <summary>
@@ -80,23 +115,7 @@ namespace NoPostProcessing
         {
             yield return new WaitForSeconds(5);
 
-            //Enumerate All Cameras
-            foreach (Camera cam in Camera.allCameras)
-            {
-                //If The Camera Has Post Processing Applied To It
-                if (cam.GetComponent<PostProcessLayer>() != null)
-                {
-                    //If The Camera's Post Processing Layer Has Not Been Toggled Previously
-                    if (!DisablePostProcessing != cam.GetComponent<PostProcessLayer>().enabled)
-                    {
-                        //Variably Log If The Post Processing Layer Was Removed Or Added
-                        MelonLogger.Msg(DisablePostProcessing ? "Removed Post Processing From World!" : "Re-Added Post Processing To World!");
-
-                        //Set The Post Processing Layer On The Camera To The Opposite State Of DisablePostProcessing
-                        cam.GetComponent<PostProcessLayer>().enabled = !DisablePostProcessing;
-                    }
-                }
-            }
+            SetPostProcessing(DisablePostProcessing);
 
             yield break;
         }
