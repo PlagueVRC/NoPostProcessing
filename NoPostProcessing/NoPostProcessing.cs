@@ -88,7 +88,7 @@ namespace NoPostProcessing
         public override void OnModSettingsApplied()
         {
             //Update Local Boolean: ConfigValue To The State Of The Boolean In Config So We Don't Need To Keep Pulling It From Config, Which Would Cause Unnecessary Disk Reads
-            bool ConfigValue = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
+            var ConfigValue = MelonPreferences.GetEntry<bool>("NoPostProcessing", "DisablePostProcessing").Value;
 
             SetPostProcessing(ConfigValue);
         }
@@ -113,9 +113,22 @@ namespace NoPostProcessing
         /// <returns></returns>
         private IEnumerator DelayedAction()
         {
-            yield return new WaitForSeconds(5);
+            var Attempts = 0;
 
-            SetPostProcessing(DisablePostProcessing);
+            while (Resources.FindObjectsOfTypeAll<PostProcessLayer>().Count == 0 && Resources.FindObjectsOfTypeAll<PostProcessVolume>().Count == 0)
+            {
+                //Let's Not Re-Check Forever. 20s Max.
+                if (Attempts == 4)
+                {
+                    yield break;
+                }
+
+                yield return new WaitForSeconds(5f);
+
+                Attempts++;
+            }
+
+            SetPostProcessing(DisablePostProcessing, true);
 
             yield break;
         }
